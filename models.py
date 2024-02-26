@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.sql import func
 
 db = SQLAlchemy()
 
@@ -19,7 +20,12 @@ class Patient(db.Model):
     name = db.Column(db.String(100))
     location = db.Column(db.String(100))
     care_needed = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime(timezone=True),
+                           server_default=func.now())
     # Add more fields as needed for patient information
+
+def __repr__(self):
+        return f'<Patient {self.firstname}>'
 
 class Caregiver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -29,7 +35,13 @@ class Caregiver(db.Model):
     qualification = db.Column(db.String(100))
     experience = db.Column(db.String(100))
     services_offered = db.Column(db.String(100))
+    created_at = db.Column(db.DateTime(timezone=True),
+                           server_default=func.now())
     # Add more fields as needed for caregiver information
+
+def __repr__(self):
+        return f'<Caregiver {self.firstname}>'
+
 
 class Appointment(db.Model):
     id = db.Column(db.Integer, primary_key=True)

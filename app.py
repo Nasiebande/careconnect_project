@@ -1,15 +1,19 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy  # Import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
+from dotenv import load_dotenv
 from models import db, User, Patient, Caregiver, Appointment, Review
+
+load_dotenv()  # Load environment variables from .env file
 
 # Create Flask Instance
 app = Flask(__name__, template_folder='templates', static_folder='static')
+app.secret_key = os.getenv('SECRET_KEY')
 
 # Configure the database URI
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///careconnect.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///your_database.db'
 
 # Suppress deprecation warnings
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -36,27 +40,33 @@ def register():
     return render_template('register.html')
 
 # Registration route for patients
-@app.route('/register/patient', methods=['POST'])
+@app.route('/register/patient', methods=['GET', 'POST'])
 def register_patient():
-    name = request.form['name']
-    email = request.form['email']
-    address = request.form['address']
-    requirements = request.form['requirements']
-    patient = Patient(name=name, email=email, address=address, requirements=requirements)
-    db.session.add(patient)
-    db.session.commit()
-    return redirect(url_for('index'))  # Redirect to home page after registration
+    if request.method == 'POST':
+        # Handle patient registration form submission
+        patient_name = request.form['patient_name']
+        patient_email = request.form['patient_email']
+        patient_location = request.form['patient_location']
+        care_needed = request.form.getlist('care_needed')
+        # Process the data as needed (e.g., store in the database)
+        flash('Patient registration successful', 'success')
+        return redirect(url_for('home'))
+    return render_template('register.html')
 
-@app.route('/register/caregiver', methods=['POST'])
+@app.route('/register/caregiver', methods=['GET', 'POST'])
 def register_caregiver():
-    name = request.form['name']
-    qualifications = request.form['qualifications']
-    experience = request.form['experience']
-    services_offered = request.form.getlist('services_offered')  # Get list of selected services
-    caregiver = Caregiver(name=name, qualifications=qualifications, experience=experience, services_offered=services_offered)
-    db.session.add(caregiver)
-    db.session.commit()
-    return redirect(url_for('index'))  # Redirect to home page after registration
+    if request.method == 'POST':
+        # Handle caregiver registration form submission
+        caregiver_name = request.form['caregiver_name']
+        caregiver_email = request.form['caregiver_email']
+        caregiver_location = request.form['caregiver_location']
+        qualification = request.form['qualification']
+        experience = request.form['experience']
+        services_offered = request.form.getlist('services_offered')
+        # Process the data as needed (e.g., store in the database)
+        flash('Caregiver registration successful', 'success')
+        return redirect(url_for('home'))
+    return render_template('register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -71,7 +81,7 @@ def login():
             # If the credentials are correct, set the user as logged in
             session['logged_in'] = True
             session['user_id'] = user.id  # Store the user ID in the session
-            return redirect(url_for('index'))  # Redirect to the home page or another route
+            return redirect(url_for('home'))  # Redirect to the home page or another route
         else:
             # If the credentials are incorrect, render the login form again with an error message
             return render_template('login.html', error='Invalid username or password')
@@ -130,7 +140,7 @@ def schedule_appointment():
         db.session.commit()
 
         # Redirect to home page or display success message
-        return redirect(url_for('index'))
+        return redirect(url_for('home'))
 
     # Render the appointment scheduling form
     return render_template('schedule_appointment.html')
