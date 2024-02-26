@@ -1,0 +1,41 @@
+{% extends'index.html' %}
+{% block title %}
+    Caregivers Results
+{% endblock %}
+
+{% block content %}
+<body>
+    <h1>Caregivers Results</h1>
+    <div class="caregiver-list">
+        {% if caregivers %}
+            <ul>
+                {% for caregiver in caregivers %}
+                    <li>
+                        <h3>{{ caregiver.name }}</h3>
+                        <p>Qualifications: {{ caregiver.qualifications }}</p>
+                        <p>Experience: {{ caregiver.experience }}</p>
+                        <p>Rating: {{ caregiver.rating }}</p>
+                        <p>Reviews:</p>
+            <ul>
+            {% for review in caregiver.reviews %}
+                <li>
+                    <p>Rating: {{ review.rating }}</p>
+                    <p>Comments: {{ review.comments }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+        <form action="{{ url_for('submit_review') }}" method="POST">
+            <input type="hidden" name="caregiver_id" value="{{ caregiver.id }}">
+            <!-- Add rating and comments input fields here for submitting a review -->
+            <button type="submit">Submit Review</button>
+        </form>
+    </li>
+{% endfor %}
+            </ul>
+        {% else %}
+            <p>No caregivers found.</p>
+        {% endif %}
+    </div>
+    <a href="{{ url_for('index') }}">Back to Home</a>
+</body>
+{% endblock %}
