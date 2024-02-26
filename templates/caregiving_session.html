@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Caregiving Session</title>
+</head>
+<body>
+    <h1>Caregiving Session</h1>
+    <div>
+        <h2>Appointment Details</h2>
+        <p>Patient: {{ appointment.patient_name }}</p>
+        <p>Caregiver: {{ appointment.caregiver_name }}</p>
+        <p>Date and Time: {{ appointment.appointment_date }} {{ appointment.appointment_time }}</p>
+        <p>Duration: {{ appointment.appointment_duration }} hours</p>
+        <p>Care Requirements: {{ appointment.care_requirements }}</p>
+    </div>
+    <div>
+        <h2>Caregiving Session Details</h2>
+        <!-- Display caregiving session details here -->
+        <p>Simulating caregiving session...</p>
+    </div>
+</body>
+</html>

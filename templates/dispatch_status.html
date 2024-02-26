@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Dispatch Status</title>
+</head>
+<body>
+    {% if success == 'true' %}
+        <h1>Dispatch Successful</h1>
+        <!-- Display success message here -->
+        <p>The caregiver has been successfully dispatched.</p>
+    {% elif success == 'false' %}
+        <h1>Dispatch Error</h1>
+        <!-- Display error message here -->
+        <p>There was an error dispatching the caregiver.</p>
+    {% else %}
+        <h1>Invalid Request</h1>
+        <p>An invalid request was made.</p>
+    {% endif %}
+</body>
+</html>

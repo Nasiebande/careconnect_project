@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Confirm and Pay</title>
+</head>
+<body>
+    <h1>Confirm and Pay</h1>
+    {% if appointment %}
+    <form action="/process_payment" method="POST">
+        <label for="appointment">Appointment Details:</label><br>
+        <!-- Display appointment details dynamically -->
+        <p>Name: {{ appointment.name }}</p>
+        <p>Date and Time: {{ appointment.date_time }}</p>
+        <p>Duration: {{ appointment.duration }}</p>
+        <!-- Add more appointment details as needed -->
+        <label for="confirmation">Confirm Appointment (yes/no):</label>
+        <input type="text" id="confirmation" name="confirmation" required><br>
+        <button type="submit">Confirm</button>
+    </form>
+    <!-- Cancel appointment button -->
+    <form action="/cancel_appointment/{{ appointment.id }}" method="POST">
+        <button type="submit">Cancel Appointment</button>
+    </form>
+    {% else %}
+    <p>No appointment details found.</p>
+    {% endif %}
+</body>
+</html>
