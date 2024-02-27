@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_sqlalchemy import SQLAlchemy  # Import SQLAlchemy
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
@@ -18,8 +17,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///careconnect.db'
 # Suppress deprecation warnings
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# Create an instance of the SQLAlchemy class
-db = SQLAlchemy(app)
+# Use the db instance from models.py
+db.init_app(app)
 
 def process_payment(amount):
     # Placeholder logic for payment processing
@@ -40,15 +39,24 @@ def register():
     return render_template('register.html')
 
 # Registration route for patients
-@app.route('/register/patient', methods=['GET', 'POST'])
+@app.route('/register/patient', methods=['POST'])
 def register_patient():
     if request.method == 'POST':
-        # Handle patient registration form submission
+        # Extract form data
         patient_name = request.form['patient_name']
         patient_email = request.form['patient_email']
+        patient_phone = request.form['patient_phone']
         patient_location = request.form['patient_location']
-        care_needed = request.form.getlist('care_needed')
-        # Process the data as needed (e.g., store in the database)
+        condition = request.form['condition']
+        care_needed = request.form.getlist('care_needed')  # Assuming care_needed is a list of selected care needs
+        
+        # Create a new patient instance
+        new_patient = Patient(name=patient_name, email=patient_email, phone_number=patient_phone, location=patient_location, condition=condition, care_needed=care_needed)
+        
+        # Add the patient to the database
+        db.session.add(new_patient)
+        db.session.commit()
+        
         flash('Patient registration successful', 'success')
         return redirect(url_for('home'))
     return render_template('register.html')
@@ -59,11 +67,17 @@ def register_caregiver():
         # Handle caregiver registration form submission
         caregiver_name = request.form['caregiver_name']
         caregiver_email = request.form['caregiver_email']
+        caregiver_phone = request.form['caregiver_phone']  # Extract phone number
         caregiver_location = request.form['caregiver_location']
         qualification = request.form['qualification']
         experience = request.form['experience']
         services_offered = request.form.getlist('services_offered')
+        
         # Process the data as needed (e.g., store in the database)
+        caregiver = Caregiver(name=caregiver_name, email=caregiver_email, phone=caregiver_phone, location=caregiver_location, qualification=qualification, experience=experience, services_offered=services_offered)
+        
+        db.session.add(caregiver)
+        db.session.commit()
         flash('Caregiver registration successful', 'success')
         return redirect(url_for('home'))
     return render_template('register.html')
@@ -113,25 +127,20 @@ def select_caregiver():
 def schedule_appointment():
     if request.method == 'POST':
         # Get form data
-        patient_name = request.form['patient_name']
-        patient_contact = request.form['patient_contact']
-        patient_address = request.form['patient_address']
-        patient_requirements = request.form['patient_requirements']
+        patient_id = request.form['patient_id']
         caregiver_id = request.form['caregiver_id']
         date_time_str = request.form['date_time']
-        duration = float(request.form['duration'])  # Convert to floatex
+        duration = float(request.form['duration'])  # Convert to float
 
-        # Find the caregiver by ID
+        # Find the caregiver and patient by ID
         caregiver = Caregiver.query.get(caregiver_id)
+        patient = Patient.query.get(patient_id)
 
         # Create a new appointment
         appointment = Appointment(
-            patient_name=patient_name,
-            patient_contact=patient_contact,
-            patient_address=patient_address,
-            patient_requirements=patient_requirements,
-            caregiver=caregiver,
-            date_time = datetime.strptime(date_time_str, "%Y-%m-%d %H:%M"),
+            patient_id=patient.id,
+            caregiver_id=caregiver.id,
+            date_time=datetime.strptime(date_time_str, "%Y-%m-%d %H:%M"),
             duration=duration
         )
 
