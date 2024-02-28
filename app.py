@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 import os
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
@@ -73,14 +74,36 @@ def register_patient():
         return redirect(url_for('home'))
     return render_template('register.html')
 
-# Define a function to handle file upload and return the path
+# Define allowed file extensions
+ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
+
+# Function to check if a file has an allowed extension
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+# Function to handle file uploads
 def upload_file(file):
-    if file:
+    if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(file_path)
-        return file_path
-    return None
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    else:
+        flash('Invalid file format. Please upload a PDF, DOC, or DOCX file.', 'error')
+        return None
+    
+# Update app configuration to specify upload folder
+app.config['UPLOAD_FOLDER'] = '/path/to/upload/folder'    
+
+def mock_verify_license(license_path):
+    # Placeholder for mock verification process
+    # You can customize this function as needed
+    if license_path:
+        flash('License verification successful', 'success')
+        return True
+    else:
+        flash('License verification failed', 'error')
+        return False
 
 @app.route('/register/caregiver', methods=['GET', 'POST'])
 def register_caregiver():
@@ -96,17 +119,48 @@ def register_caregiver():
         license_file = request.files['license']  # Extract license file
         services_offered = request.form.getlist('services_offered')
         
-        # Upload license file and get file path
-        license_path = upload_file(license_file)
-        
-        # Process the data as needed (e.g., store in the database)
-        caregiver = Caregiver(name=caregiver_name, email=caregiver_email, phone=caregiver_phone, location=caregiver_location, qualification=qualification, experience=experience, sex=sex, license=license_path, services_offered=services_offered)
-        
-        db.session.add(caregiver)
-        db.session.commit()
-        flash('Caregiver registration successful', 'success')
-        return redirect(url_for('home'))
+        # Verify license (mock verification process)
+        if mock_verify_license(license_file):
+            # Upload license file and get file path
+            license_path = upload_file(license_path)
+            
+            if license_path:
+                # Process the data as needed (e.g., store in the database)
+                caregiver = Caregiver(name=caregiver_name, email=caregiver_email, phone=caregiver_phone, location=caregiver_location, qualification=qualification, experience=experience, sex=sex, license=license_path, services_offered=services_offered)
+                
+                db.session.add(caregiver)
+                db.session.commit()
+                flash('Caregiver registration successful', 'success')
+                return redirect(url_for('home'))
+            else:
+                # Error handling for file upload failure
+                return redirect(request.url)  # Redirect back to the registration page
+        else:
+            flash('License verification failed. Please upload a valid license.', 'error')
+            return redirect(request.url)  # Redirect back to the registration page
     return render_template('register.html')
+
+def register_caregiver(license_file):
+    # After the verification process
+    caregiver = Caregiver.query.filter_by(user_id=current_user.id).first()  # Fetch the caregiver from the database
+    if caregiver:
+        # After the verification process
+        caregiver.license_verified = mock_verify_license(license_file)
+        db.session.commit()
+    else:
+        # Handle case where caregiver is not found
+        flash('Caregiver not found', 'error')
+
+@app.route('/dashboard')
+def dashboard():
+    # Fetch the caregiver's profile from the database
+    caregiver = Caregiver.query.filter_by(user_id=current_user.id).first()
+    # Display a message based on the verification status
+    if caregiver.license_verified:
+        verification_message = "Your license has been successfully verified."
+    else:
+        verification_message = "Your license verification is pending or unsuccessful."
+    return render_template('dashboard.html', verification_message=verification_message)    
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -117,10 +171,9 @@ def login():
         # Query the database to check if the username exists
         user = User.query.filter_by(username=username).first()
 
-        if user and user.check_password(password):  # Assuming you have a method to check the password
+        if user and check_password_hash(user.password, password):  # Check hashed password
             # If the credentials are correct, set the user as logged in
-            session['logged_in'] = True
-            session['user_id'] = user.id  # Store the user ID in the session
+            login_user(user)  # Use Flask-Login's login_user function
             return redirect(url_for('home'))  # Redirect to the home page or another route
         else:
             # If the credentials are incorrect, render the login form again with an error message
@@ -317,4 +370,7 @@ def complete_and_feedback(appointment_id):
     return render_template('complete_and_feedback.html', appointment=appointment)
 
 if __name__ == '__main__':
+    with app.app_context():
+        # Create all database tables
+        db.create_all()
     app.run(debug=True)

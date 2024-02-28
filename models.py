@@ -34,14 +34,16 @@ class Caregiver(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(100))
-    email = db.Column(db.String(100))  # Add email attribute
-    phone_number = db.Column(db.String(20), nullable=False)  # Adding phone number field
+    email = db.Column(db.String(100))
+    phone_number = db.Column(db.String(20), nullable=False)
     location = db.Column(db.String(100))
     qualification = db.Column(db.String(100))
     experience = db.Column(db.String(100))
-    sex = db.Column(db.String(10))  # Add field for caregiver's sex (male or female)
-    license = db.Column(db.String(100))  # Add field for caregiver's license
-    services_offered = db.Column(db.String(100))  # Directly store services offered
+    sex = db.Column(db.String(10))
+    license = db.Column(db.String(100))
+    services_offered = db.Column(db.String(100))
+    license_verified = db.Column(db.Boolean, default=False)  # New field for license verification status
+    verification_error = db.Column(db.String(255))  # New field for storing verification error message
 
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
@@ -72,3 +74,4 @@ class Review(db.Model):
 
     def __repr__(self):
         return f'<Review {self.id}>'
+    

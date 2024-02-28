@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - CareConnect</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <h1>Register</h1>
@@ -48,7 +48,7 @@
 
 
     <h2>Caregiver Registration</h2>
-    <form action="{{ url_for('register_caregiver') }}" method="POST">
+    <form action="{{ url_for('register_caregiver') }}" method="POST">    
         <label for="caregiver_name">Name:</label>
         <input type="text" id="caregiver_name" name="caregiver_name" required><br><br>
         <label for="caregiver_email">Email:</label>
