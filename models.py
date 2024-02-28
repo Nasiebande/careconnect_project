@@ -19,10 +19,12 @@ class Patient(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     name = db.Column(db.String(100), nullable=False)
     email = db.Column(db.String(100), nullable=False)
-    phone_number = db.Column(db.String(20), nullable=False)  # Adding phone number field
-    condition = db.Column(db.String(100), nullable=False)  # Adding condition field
+    phone_number = db.Column(db.String(20), nullable=False)
+    condition = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
+    sex = db.Column(db.String(10), nullable=False)  # Add sex field
     care_needed = db.Column(db.String(100), nullable=False)  # Changing care_needed to a single field
+    preferences = db.Column(db.String(100))  # Add preferences field
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self):
@@ -37,8 +39,10 @@ class Caregiver(db.Model):
     location = db.Column(db.String(100))
     qualification = db.Column(db.String(100))
     experience = db.Column(db.String(100))
-    # Define a relationship with a new table for services offered
-    services_offered = db.relationship('ServiceOffered', secondary='caregiver_service_offered', backref='caregivers')
+    sex = db.Column(db.String(10))  # Add field for caregiver's sex (male or female)
+    license = db.Column(db.String(100))  # Add field for caregiver's license
+    services_offered = db.Column(db.String(100))  # Directly store services offered
+
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self):

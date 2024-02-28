@@ -3,6 +3,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 import os
 from dotenv import load_dotenv
+from werkzeug.utils import secure_filename
 from models import db, User, Patient, Caregiver, Appointment, Review
 
 load_dotenv()  # Load environment variables from .env file
@@ -48,10 +49,21 @@ def register_patient():
         patient_phone = request.form['patient_phone']
         patient_location = request.form['patient_location']
         condition = request.form['condition']
-        care_needed = request.form.getlist('care_needed')  # Assuming care_needed is a list of selected care needs
+        sex = request.form['sex']
+        care_needed = request.form['care_needed']
+        preferences = request.form.get('preferences', None)
         
         # Create a new patient instance
-        new_patient = Patient(name=patient_name, email=patient_email, phone_number=patient_phone, location=patient_location, condition=condition, care_needed=care_needed)
+        new_patient = Patient(
+            name=patient_name, 
+            email=patient_email, 
+            phone_number=patient_phone, 
+            location=patient_location, 
+            condition=condition, 
+            sex=sex, 
+            care_needed=care_needed,
+            preferences=preferences
+        )
         
         # Add the patient to the database
         db.session.add(new_patient)
@@ -60,6 +72,15 @@ def register_patient():
         flash('Patient registration successful', 'success')
         return redirect(url_for('home'))
     return render_template('register.html')
+
+# Define a function to handle file upload and return the path
+def upload_file(file):
+    if file:
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        return file_path
+    return None
 
 @app.route('/register/caregiver', methods=['GET', 'POST'])
 def register_caregiver():
@@ -71,10 +92,15 @@ def register_caregiver():
         caregiver_location = request.form['caregiver_location']
         qualification = request.form['qualification']
         experience = request.form['experience']
+        sex = request.form['sex']  # Extract sex
+        license_file = request.files['license']  # Extract license file
         services_offered = request.form.getlist('services_offered')
         
+        # Upload license file and get file path
+        license_path = upload_file(license_file)
+        
         # Process the data as needed (e.g., store in the database)
-        caregiver = Caregiver(name=caregiver_name, email=caregiver_email, phone=caregiver_phone, location=caregiver_location, qualification=qualification, experience=experience, services_offered=services_offered)
+        caregiver = Caregiver(name=caregiver_name, email=caregiver_email, phone=caregiver_phone, location=caregiver_location, qualification=qualification, experience=experience, sex=sex, license=license_path, services_offered=services_offered)
         
         db.session.add(caregiver)
         db.session.commit()
