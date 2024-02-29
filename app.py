@@ -1,4 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_wtf import FlaskForm
+from wtforms import StringField, PasswordField, SubmitField, FileField, SelectField, SelectMultipleField
+from wtforms.validators import DataRequired, Email, EqualTo
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
@@ -11,6 +14,13 @@ load_dotenv()  # Load environment variables from .env file
 
 # Create Flask Instance
 app = Flask(__name__, template_folder='templates', static_folder='static')
+
+login_manager = LoginManager(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
 app.secret_key = os.getenv('SECRET_KEY')
 
 # Configure the database URI
@@ -27,6 +37,38 @@ def process_payment(amount):
     # Here, you can simulate a successful payment
     return 'success'
 
+class RegistrationForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    password = PasswordField('Password', validators=[DataRequired()])
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    submit = SubmitField('Sign Up')
+
+class PatientRegistrationForm(FlaskForm):
+    patient_name = StringField('Name', validators=[DataRequired()])
+    patient_email = StringField('Email', validators=[DataRequired(), Email()])
+    patient_number = StringField('Phone Number', validators=[DataRequired()])
+    condition = StringField('Condition', validators=[DataRequired()])
+    patient_location = StringField('Location', validators=[DataRequired()])
+    sex = StringField('Sex', validators=[DataRequired()])
+    care_needed = StringField('Care Needed', validators=[DataRequired()])
+    preferences = StringField('Preferences')
+    user_type = SelectField('User Type', choices=[('patient', 'Patient')], validators=[DataRequired()])
+    submit = SubmitField('Register as Patient')
+
+class CaregiverRegistrationForm(FlaskForm):
+    caregiver_name = StringField('Name', validators=[DataRequired()])
+    caregiver_email = StringField('Email', validators=[DataRequired(), Email()])
+    caregiver_phone = StringField('Phone Number', validators=[DataRequired()])
+    caregiver_location = StringField('Location', validators=[DataRequired()])
+    qualification = StringField('Qualification', validators=[DataRequired()])
+    experience = StringField('Experience', validators=[DataRequired()])
+    sex = SelectField('Sex', choices=[('Male', 'Male'), ('Female', 'Female')], validators=[DataRequired()])
+    license = FileField('Upload License', validators=[DataRequired()])
+    services_offered = SelectField('Services Offered', choices=[('Post surgery', 'Post surgery'), ('Bed-ridden care', 'Bed-ridden care'), ('Terminally ill care', 'Terminally ill care'), ('General convalescents', 'General convalescents'), ('Palliative care', 'Palliative care'), ('Bathing and personal hygiene', 'Bathing and personal hygiene'), ('Feeding', 'Feeding'), ('Ambulation', 'Ambulation'), ('Administering prescribed medication', 'Administering prescribed medication'), ('Overnight Elderly Care', 'Overnight Elderly Care'), ('Maternal and child care', 'Maternal and child care')], validators=[DataRequired()])
+    user_type = SelectField('User Type', choices=[('caregiver', 'Caregiver')], validators=[DataRequired()])
+    submit = SubmitField('Register as Caregiver')
+
 # Define your routes
 @app.route('/')
 def home():
@@ -36,43 +78,55 @@ def home():
 def about():
     return render_template("about.html")
 
-@app.route('/register', methods=['GET'])
-def register():
-    return render_template('register.html')
-
-# Registration route for patients
-@app.route('/register/patient', methods=['POST'])
-def register_patient():
-    if request.method == 'POST':
-        # Extract form data
-        patient_name = request.form['patient_name']
-        patient_email = request.form['patient_email']
-        patient_phone = request.form['patient_phone']
-        patient_location = request.form['patient_location']
-        condition = request.form['condition']
-        sex = request.form['sex']
-        care_needed = request.form['care_needed']
-        preferences = request.form.get('preferences', None)
-        
-        # Create a new patient instance
-        new_patient = Patient(
-            name=patient_name, 
-            email=patient_email, 
-            phone_number=patient_phone, 
-            location=patient_location, 
-            condition=condition, 
-            sex=sex, 
-            care_needed=care_needed,
-            preferences=preferences
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    form = RegistrationForm()
+    if form.validate_on_submit():
+        # Create a new user
+        user = User(
+            name=form.name.data,
+            email=form.email.data,
+            password=form.password.data,
+            user_type=form.user_type.data
         )
-        
-        # Add the patient to the database
-        db.session.add(new_patient)
+        db.session.add(user)
         db.session.commit()
         
+        # Flash message for successful signup
+        flash('User signed up successfully!', 'success')
+        # Redirect to the appropriate registration page based on user type
+        if user.user_type == 'caregiver':
+            return redirect(url_for('register_caregiver'))
+        elif user.user_type == 'patient':
+            return redirect(url_for('register_patient'))
+        else:
+            return redirect(url_for('home'))  # Redirect to home page if user type is invalid
+
+    return render_template('signup.html', form=form)
+
+# Registration route for patients
+@app.route('/register/patient', methods=['GET', 'POST'])
+@login_required
+def register_patient():
+    form = PatientRegistrationForm()
+    if form.validate_on_submit():
+        # Create a new patient associated with the logged-in user
+        patient = Patient(
+            user_id=current_user.id,
+            name=form.patient_name.data,
+            email=form.patient_email.data,
+            phone=form.patient_phone.data,
+            condition=form.condition.data,
+            location=form.patient_location.data,
+            sex=form.sex.data,
+            care_needed=form.care_needed.data,
+            preferences=form.preferences.data
+        )
+        db.session.add(patient)
+        db.session.commit()
         flash('Patient registration successful', 'success')
         return redirect(url_for('home'))
-    return render_template('register.html')
+    return render_template('register_patient.html', form=form)
 
 # Define allowed file extensions
 ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
@@ -104,41 +158,37 @@ def mock_verify_license(license_path):
     else:
         flash('License verification failed', 'error')
         return False
-
+    
 @app.route('/register/caregiver', methods=['GET', 'POST'])
+@login_required
 def register_caregiver():
-    if request.method == 'POST':
-        # Handle caregiver registration form submission
-        caregiver_name = request.form['caregiver_name']
-        caregiver_email = request.form['caregiver_email']
-        caregiver_phone = request.form['caregiver_phone']  # Extract phone number
-        caregiver_location = request.form['caregiver_location']
-        qualification = request.form['qualification']
-        experience = request.form['experience']
-        sex = request.form['sex']  # Extract sex
-        license_file = request.files['license']  # Extract license file
-        services_offered = request.form.getlist('services_offered')
-        
-        # Verify license (mock verification process)
-        if mock_verify_license(license_file):
-            # Upload license file and get file path
-            license_path = upload_file(license_path)
-            
-            if license_path:
-                # Process the data as needed (e.g., store in the database)
-                caregiver = Caregiver(name=caregiver_name, email=caregiver_email, phone=caregiver_phone, location=caregiver_location, qualification=qualification, experience=experience, sex=sex, license=license_path, services_offered=services_offered)
-                
-                db.session.add(caregiver)
-                db.session.commit()
-                flash('Caregiver registration successful', 'success')
-                return redirect(url_for('home'))
-            else:
-                # Error handling for file upload failure
-                return redirect(request.url)  # Redirect back to the registration page
-        else:
-            flash('License verification failed. Please upload a valid license.', 'error')
-            return redirect(request.url)  # Redirect back to the registration page
-    return render_template('register.html')
+    form = CaregiverRegistrationForm()
+    if form.validate_on_submit():
+        # Process the data as needed
+        # For example, you can save the uploaded license file and store its path in the database
+        license_path = upload_file(form.license.data)
+
+        # Create a new caregiver instance
+        caregiver = Caregiver(
+            user_id=current_user.id,
+            name=form.caregiver_name.data,
+            email=form.caregiver_email.data,
+            phone=form.caregiver_phone.data,
+            location=form.caregiver_location.data,
+            qualification=form.qualification.data,
+            experience=form.experience.data,
+            sex=form.sex.data,
+            license=license_path,
+            services_offered=form.services_offered.data
+        )
+
+        # Add the caregiver to the database
+        db.session.add(caregiver)
+        db.session.commit()
+
+        flash('Caregiver registration successful', 'success')
+        return redirect(url_for('home'))
+    return render_template('register_caregiver.html', form=form)   
 
 def register_caregiver(license_file):
     # After the verification process
@@ -165,19 +215,29 @@ def dashboard():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
+        email = request.form['email']
         password = request.form['password']
 
         # Query the database to check if the username exists
-        user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(email=email).first()
 
         if user and check_password_hash(user.password, password):  # Check hashed password
             # If the credentials are correct, set the user as logged in
             login_user(user)  # Use Flask-Login's login_user function
+
+            # Redirect to the appropriate registration page based on user type
+            if user.user_type == 'caregiver':
+                return redirect(url_for('register_caregiver'))
+            elif user.user_type == 'patient':
+                return redirect(url_for('register_patient'))
+            else:
+                flash('Invalid user type.', 'error')
             return redirect(url_for('home'))  # Redirect to the home page or another route
+        
         else:
             # If the credentials are incorrect, render the login form again with an error message
-            return render_template('login.html', error='Invalid username or password')
+            flash('Invalid email or password.', 'error')
+            return render_template('login.html')
 
     # If the request method is GET, render the login form
     return render_template('login.html', error=None)
