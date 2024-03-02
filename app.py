@@ -100,6 +100,36 @@ def signup():
 
     return render_template('signup.html', form=form)
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        email = request.form['email']
+        password = request.form['password']
+
+        # Query the database to check if the username exists
+        user = User.query.filter_by(email=email).first()
+
+        if user and check_password_hash(user.password, password):  # Check hashed password
+            # If the credentials are correct, set the user as logged in
+            login_user(user)  # Use Flask-Login's login_user function
+
+            # Redirect to the appropriate registration page based on user type
+            if user.user_type == 'caregiver':
+                return redirect(url_for('register_caregiver'))
+            elif user.user_type == 'patient':
+                return redirect(url_for('register_patient'))
+            else:
+                flash('Invalid user type.', 'error')
+            return redirect(url_for('home'))  # Redirect to the home page or another route
+        
+        else:
+            # If the credentials are incorrect, render the login form again with an error message
+            flash('Invalid email or password.', 'error')
+            return render_template('login.html')
+
+    # If the request method is GET, render the login form
+    return render_template('login.html', error=None)
+
 # Registration route for patients
 @app.route('/register/patient', methods=['GET', 'POST'])
 @login_required
@@ -207,36 +237,6 @@ def dashboard():
     else:
         verification_message = "Your license verification is pending or unsuccessful."
     return render_template('dashboard.html', verification_message=verification_message)    
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-
-        # Query the database to check if the username exists
-        user = User.query.filter_by(email=email).first()
-
-        if user and check_password_hash(user.password, password):  # Check hashed password
-            # If the credentials are correct, set the user as logged in
-            login_user(user)  # Use Flask-Login's login_user function
-
-            # Redirect to the appropriate registration page based on user type
-            if user.user_type == 'caregiver':
-                return redirect(url_for('register_caregiver'))
-            elif user.user_type == 'patient':
-                return redirect(url_for('register_patient'))
-            else:
-                flash('Invalid user type.', 'error')
-            return redirect(url_for('home'))  # Redirect to the home page or another route
-        
-        else:
-            # If the credentials are incorrect, render the login form again with an error message
-            flash('Invalid email or password.', 'error')
-            return render_template('login.html')
-
-    # If the request method is GET, render the login form
-    return render_template('login.html', error=None)
 
 # Caregiver Search route
 @app.route('/search_caregivers', methods=['GET', 'POST'])
