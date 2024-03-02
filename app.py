@@ -1,7 +1,4 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, FileField, SelectField, SelectMultipleField
-from wtforms.validators import DataRequired, Email, EqualTo
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
@@ -9,6 +6,7 @@ import os
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from models import db, User, Patient, Caregiver, Appointment, Review
+from forms import RegistrationForm, PatientRegistrationForm, CaregiverRegistrationForm
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -37,38 +35,6 @@ def process_payment(amount):
     # Here, you can simulate a successful payment
     return 'success'
 
-class RegistrationForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Sign Up')
-
-class PatientRegistrationForm(FlaskForm):
-    patient_name = StringField('Name', validators=[DataRequired()])
-    patient_email = StringField('Email', validators=[DataRequired(), Email()])
-    patient_number = StringField('Phone Number', validators=[DataRequired()])
-    condition = StringField('Condition', validators=[DataRequired()])
-    patient_location = StringField('Location', validators=[DataRequired()])
-    sex = StringField('Sex', validators=[DataRequired()])
-    care_needed = StringField('Care Needed', validators=[DataRequired()])
-    preferences = StringField('Preferences')
-    user_type = SelectField('User Type', choices=[('patient', 'Patient')], validators=[DataRequired()])
-    submit = SubmitField('Register as Patient')
-
-class CaregiverRegistrationForm(FlaskForm):
-    caregiver_name = StringField('Name', validators=[DataRequired()])
-    caregiver_email = StringField('Email', validators=[DataRequired(), Email()])
-    caregiver_phone = StringField('Phone Number', validators=[DataRequired()])
-    caregiver_location = StringField('Location', validators=[DataRequired()])
-    qualification = StringField('Qualification', validators=[DataRequired()])
-    experience = StringField('Experience', validators=[DataRequired()])
-    sex = SelectField('Sex', choices=[('Male', 'Male'), ('Female', 'Female')], validators=[DataRequired()])
-    license = FileField('Upload License', validators=[DataRequired()])
-    services_offered = SelectField('Services Offered', choices=[('Post surgery', 'Post surgery'), ('Bed-ridden care', 'Bed-ridden care'), ('Terminally ill care', 'Terminally ill care'), ('General convalescents', 'General convalescents'), ('Palliative care', 'Palliative care'), ('Bathing and personal hygiene', 'Bathing and personal hygiene'), ('Feeding', 'Feeding'), ('Ambulation', 'Ambulation'), ('Administering prescribed medication', 'Administering prescribed medication'), ('Overnight Elderly Care', 'Overnight Elderly Care'), ('Maternal and child care', 'Maternal and child care')], validators=[DataRequired()])
-    user_type = SelectField('User Type', choices=[('caregiver', 'Caregiver')], validators=[DataRequired()])
-    submit = SubmitField('Register as Caregiver')
-
 # Define your routes
 @app.route('/')
 def home():
@@ -82,21 +48,23 @@ def about():
 def signup():
     form = RegistrationForm()
     if form.validate_on_submit():
-        # Create a new user
-        user = User(
-            name=form.name.data,
-            email=form.email.data,
-            password=form.password.data,
-            user_type=form.user_type.data
-        )
-        db.session.add(user)
+        # Form submission logic
+        user = User.query.filter_by(email=form.email.data).first()  # Check if user already exists
+
+        if user:
+            flash('Email address is already registered. Please use a different one.', 'error')
+            return redirect(url_for('signup'))  # Redirect back to signup page if user already exists
+
+        # Create a new user if user does not exist
+        new_user = User(name=form.name.data,
+                        email=form.email.data,
+                        password=form.password.data,
+                        user_type=form.user_type.data)
+        db.session.add(new_user)
         db.session.commit()
-        
-        # Flash message for successful signup
+
         flash('User signed up successfully!', 'success')
-        
-        # Redirect to the login page after successful signup
-        return redirect(url_for('login'))
+        return redirect(url_for('login'))  # Redirect to login page after successful signup
 
     return render_template('signup.html', form=form)
 
@@ -129,6 +97,12 @@ def login():
 
     # If the request method is GET, render the login form
     return render_template('login.html', error=None)
+
+@app.route('/logout')
+def logout():
+    logout_user()  # Log out the current user using Flask-Login's logout_user function
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('login'))
 
 # Registration route for patients
 @app.route('/register/patient', methods=['GET', 'POST'])
