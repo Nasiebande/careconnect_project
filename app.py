@@ -94,13 +94,9 @@ def signup():
         
         # Flash message for successful signup
         flash('User signed up successfully!', 'success')
-        # Redirect to the appropriate registration page based on user type
-        if user.user_type == 'caregiver':
-            return redirect(url_for('register_caregiver'))
-        elif user.user_type == 'patient':
-            return redirect(url_for('register_patient'))
-        else:
-            return redirect(url_for('home'))  # Redirect to home page if user type is invalid
+        
+        # Redirect to the login page after successful signup
+        return redirect(url_for('login'))
 
     return render_template('signup.html', form=form)
 
