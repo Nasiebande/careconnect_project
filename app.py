@@ -54,18 +54,22 @@ def signup():
         if user:
             flash('Email address is already registered. Please use a different one.', 'error')
             return redirect(url_for('signup'))  # Redirect back to signup page if user already exists
+        
+        else:
+            #Hash the password
+            hashed_password = generate_password_hash(form.password.data)
 
-        # Create a new user if user does not exist
-        new_user = User(name=form.name.data,
-                        email=form.email.data,
-                        password=form.password.data,
-                        user_type=form.user_type.data)
-        db.session.add(new_user)
-        db.session.commit()
+            #Create a new user if user does not exist
+            new_user = User(name=form.name.data,
+                            email=form.email.data,
+                            password=hashed_password,
+                            user_type=form.user_type.data)
+            db.session.add(new_user)
+            db.session.commit()
 
-        flash('User signed up successfully!', 'success')
-        return redirect(url_for('login'))  # Redirect to login page after successful signup
-
+            flash("User signed up successfully!")
+            return redirect(url_for('login'))  # Redirect to login page after successful signup
+        
     return render_template('signup.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])

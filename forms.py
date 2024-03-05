@@ -7,6 +7,7 @@ class RegistrationForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Password', validators=[DataRequired()])
     confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
+    user_type = SelectField('User Type', choices=[('patient', 'Patient'), ('caregiver', 'Caregiver')], validators=[DataRequired()])
     submit = SubmitField('Sign Up')
 
 class PatientRegistrationForm(FlaskForm):

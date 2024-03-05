@@ -15,6 +15,9 @@ class User(db.Model, UserMixin):
     patient = db.relationship('Patient', backref='user', uselist=False)
     caregiver = db.relationship('Caregiver', backref='user', uselist=False)
 
+    def __repr__(self):
+        return f'<User {self.name}>'
+
 class Patient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
