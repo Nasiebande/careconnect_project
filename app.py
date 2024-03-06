@@ -32,7 +32,6 @@ db.init_app(app)
 
 def process_payment(amount):
     # Placeholder logic for payment processing
-    # Here, you can simulate a successful payment
     return 'success'
 
 # Define your routes
