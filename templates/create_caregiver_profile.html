@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caregiver Registration - CareConnect</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <!-- Flash messages -->
+    <div class="container">
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flash-messages">
+                    {% for message in messages %}
+                        <li class="alert alert-success">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+    <h1>Caregiver Registration</h1>
+
+    <form action="{{ url_for('register_caregiver') }}" method="POST">
+        <label for="caregiver_name">Name:</label>
+        <input type="text" id="caregiver_name" name="caregiver_name" required><br><br>
+        <label for="caregiver_email">Email:</label>
+        <input type="email" id="caregiver_email" name="caregiver_email" required><br><br>
+        <label for="caregiver_location">Location:</label>
+        <input type="text" id="caregiver_location" name="caregiver_location" required><br><br>
+        <label for="qualification">Qualification:</label>
+        <input type="text" id="qualification" name="qualification" required><br><br>
+        <label for="experience">Experience:</label>
+        <input type="text" id="experience" name="experience" required><br><br>
+        <label for="caregiver_phone">Phone Number:</label>
+        <input type="text" id="caregiver_phone" name="caregiver_phone" required><br><br>
+        <label for="sex">Sex:</label>
+        <select id="sex" name="sex" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select><br><br>
+        <label for="license">Upload License:</label>
+        <input type="file" id="license" name="license" accept=".pdf, .doc, .docx"><br><br>
+        <label for="services_offered">Services Offered:</label>
+        <select id="services_offered" name="services_offered" multiple required>
+            <option value="Post surgery">Post surgery</option>
+            <option value="Bed-ridden care">Bed-ridden care</option>
+            <option value="Terminally ill care">Terminally ill care</option>
+            <option value="General convalescents">General convalescents</option>
+            <option value="Palliative care">Palliative care</option>
+            <option value="Bathing and personal hygiene">Bathing and personal hygiene</option>
+            <option value="Feeding">Feeding</option>
+            <option value="Ambulation">Ambulation</option>
+            <option value="Administering prescribed medication">Administering prescribed medication</option>
+            <option value="Overnight Elderly Care">Overnight Elderly Care</option>
+            <option value="Maternal and child care">Maternal and child care</option>
+        </select><br><br>
+        <input type="submit" value="Register as Caregiver">
+    </form>
+</body>
+</html>
