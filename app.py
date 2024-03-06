@@ -46,10 +46,13 @@ def about():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     form = RegistrationForm()
+    
+    # Debug statement to check if form is submitted
+    print("Form submitted:", form.is_submitted())
+    
     if form.validate_on_submit():
         # Form submission logic
         user = User.query.filter_by(email=form.email.data).first()  # Check if user already exists
-
         if user:
             flash('Email address is already registered. Please use a different one.', 'error')
             return redirect(url_for('signup'))  # Redirect back to signup page if user already exists
@@ -68,8 +71,11 @@ def signup():
 
             flash("User signed up successfully!")
             return redirect(url_for('login'))  # Redirect to login page after successful signup
-        
-    return render_template('signup.html', form=form)
+    else:
+        # Debug statement to print form errors
+        print(form.errors)
+
+    return render_template('signup.html', form=form)    
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
