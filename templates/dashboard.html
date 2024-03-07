@@ -48,15 +48,76 @@
         <div id="patient-dashboard">
             <h1>Hello {{ user_name }}! Welcome to your Dashboard</h1>
             <!-- Personal Information -->
-            <h2>Personal Information</h2>
-            <div class="row mt-3">
-                <div class="col-md-6">
-                    <h2>Upcoming Appointments</h2>
-                    <!-- Add upcoming appointments for patients -->
+            <div class="card mb-3">
+                <div class="card-header">Personal Information</div>
+                <div class="card-body">
+                    <p>Name: {{ current_user.name }}</p>
+                    <p>Email: {{ current_user.email }}</p>
+                    <!-- More personal information fields to be added here -->
                 </div>
-                <div class="col-md-6">
-                    <h2>Health Records</h2>
-                    <!-- Add health records for patients -->
+            </div>
+
+            <!-- Medical History -->
+            <div class="card mb-3">
+                <div class="card-header">Medical History</div>
+                <div class="card-body">
+                    <!-- Medical history fields to be added here -->
+                </div>
+            </div>
+
+            <!-- Emergency Contacts -->
+            <div class="card mb-3">
+                <div class="card-header">Emergency Contacts</div>
+                <div class="card-body">
+                    <!-- Emergency contact fields to be added here -->
+                </div>
+            </div>
+
+            <!-- Insurance Information -->
+            <div class="card mb-3">
+                <div class="card-header">Insurance Information</div>
+                <div class="card-body">
+                    <!-- Insurance information fields to be added here -->
+                </div>
+            </div>
+            
+            <!-- Appointment Scheduling -->
+            <div class="card mb-3">
+                <div class="card-header">Appointment Scheduling</div>
+                <div class="card-body">
+                    <!-- Appointment scheduling functionality to be added here -->
+                </div>
+            </div>
+            
+            <!-- Care Plan -->
+            <div class="card mb-3">
+                <div class="card-header">Care Plan</div>
+                <div class="card-body">
+                    <!-- Care plan functionality to be added here -->
+                </div>
+            </div>
+
+            <!-- Messaging/Communication -->
+            <div class="card mb-3">
+                <div class="card-header">Messaging/Communication</div>
+                <div class="card-body">
+                    <!-- Messaging/communication functionality to be added here -->
+                </div>
+            </div>
+
+            <!-- Feedback/Ratings -->
+            <div class="card mb-3">
+                <div class="card-header">Feedback/Ratings</div>
+                <div class="card-body">
+                    <!-- Feedback/ratings functionality to be added here -->
+                </div>
+            </div>
+
+            <!-- Billing and Payment -->
+            <div class="card mb-3">
+                <div class="card-header">Billing and Payment</div>
+                <div class="card-body">
+                    <!-- Billing and payment functionality to be added here -->
                 </div>
             </div>
         </div>
