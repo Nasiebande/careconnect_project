@@ -118,13 +118,20 @@ def logout():
 @login_required
 def register_patient():
     form = PatientRegistrationForm()
+    
+    # Debug statement to check if form is submitted
+    print("Form submitted:", form.is_submitted())
+    
     if form.validate_on_submit():
+        # Debug statement to indicate form validation passed
+        print("Form validation passed")
+
         # Create a new patient associated with the logged-in user
         patient = Patient(
             user_id=current_user.id,
             name=form.patient_name.data,
             email=form.patient_email.data,
-            phone=form.patient_phone.data,
+            phone_number=form.phone_number.data,  
             condition=form.condition.data,
             location=form.patient_location.data,
             sex=form.sex.data,
@@ -134,29 +141,12 @@ def register_patient():
         db.session.add(patient)
         db.session.commit()
         flash('Patient registration successful', 'success')
-        return redirect(url_for('home'))
-    return render_template('register_patient.html', form=form)
-
-# Define allowed file extensions
-ALLOWED_EXTENSIONS = {'pdf', 'doc', 'docx'}
-
-# Function to check if a file has an allowed extension
-def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# Function to handle file uploads
-def upload_file(file):
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        return os.path.join(app.config['UPLOAD_FOLDER'], filename)
-    else:
-        flash('Invalid file format. Please upload a PDF, DOC, or DOCX file.', 'error')
-        return None
+        return redirect(url_for('dashboard'))
     
-# Update app configuration to specify upload folder
-app.config['UPLOAD_FOLDER'] = '/path/to/upload/folder'    
+    # Debug statement to print form errors if validation fails
+    print("Form errors:", form.errors)
+    
+    return render_template('register_patient.html', form=form)
 
 def mock_verify_license(license_path):
     # Placeholder for mock verification process
@@ -167,15 +157,18 @@ def mock_verify_license(license_path):
     else:
         flash('License verification failed', 'error')
         return False
-    
+
 @app.route('/register/caregiver', methods=['GET', 'POST'])
 @login_required
 def register_caregiver():
     form = CaregiverRegistrationForm()
     if form.validate_on_submit():
         # Process the data as needed
-        # For example, you can save the uploaded license file and store its path in the database
-        license_path = upload_file(form.license.data)
+        # For example, you can directly access the license number from the form
+        license_number = form.license_number.data
+
+        # Perform mock verification using the license number
+        license_verified = mock_verify_license(license_number)
 
         # Create a new caregiver instance
         caregiver = Caregiver(
@@ -187,7 +180,7 @@ def register_caregiver():
             qualification=form.qualification.data,
             experience=form.experience.data,
             sex=form.sex.data,
-            license=license_path,
+            license_verified=license_verified,  # Update license_verified field
             services_offered=form.services_offered.data
         )
 
@@ -197,30 +190,18 @@ def register_caregiver():
 
         flash('Caregiver registration successful', 'success')
         return redirect(url_for('home'))
-    return render_template('register_caregiver.html', form=form)   
-
-def register_caregiver(license_file):
-    # After the verification process
-    caregiver = Caregiver.query.filter_by(user_id=current_user.id).first()  # Fetch the caregiver from the database
-    if caregiver:
-        # After the verification process
-        caregiver.license_verified = mock_verify_license(license_file)
-        db.session.commit()
-    else:
-        # Handle case where caregiver is not found
-        flash('Caregiver not found', 'error')
+    return render_template('register_caregiver.html', form=form)
 
 @app.route('/dashboard')
 def dashboard():
-    # Fetch the caregiver's profile from the database
-    caregiver = Caregiver.query.filter_by(user_id=current_user.id).first()
-    # Display a message based on the verification status
-    if caregiver.license_verified:
-        verification_message = "Your license has been successfully verified."
+    if current_user.is_authenticated:
+        user_name = current_user.name
     else:
-        verification_message = "Your license verification is pending or unsuccessful."
-    return render_template('dashboard.html', verification_message=verification_message)    
+        user_name = ""
 
+    license_verified = True  # Set this to True or False based on whether the caregiver's license has been verified
+    return render_template('dashboard.html', user_name=user_name, license_verified=license_verified)
+    
 # Caregiver Search route
 @app.route('/search_caregivers', methods=['GET', 'POST'])
 def search_caregivers():

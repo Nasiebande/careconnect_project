@@ -44,16 +44,40 @@
     
     <!-- Content -->
     <div class="container mt-5">
-        <h1>Welcome to your Dashboard</h1>
-        <!-- Add specific dashboard content for patients or caregivers here -->
-        <div class="row mt-3">
-            <div class="col-md-6">
-                <h2>Patient Dashboard</h2>
-                <!-- Add patient-specific content here -->
+        <!-- Patient Dashboard -->
+        <div id="patient-dashboard">
+            <h1>Hello {{ user_name }}! Welcome to your Dashboard</h1>
+            <!-- Add patient-specific content here -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h2>Upcoming Appointments</h2>
+                    <!-- Add upcoming appointments for patients -->
+                </div>
+                <div class="col-md-6">
+                    <h2>Health Records</h2>
+                    <!-- Add health records for patients -->
+                </div>
             </div>
-            <div class="col-md-6">
-                <h2>Caregiver Dashboard</h2>
-                <!-- Add caregiver-specific content here -->
+        </div>
+
+        <!-- Caregiver Dashboard -->
+        <div id="caregiver-dashboard" style="display: none;">
+            <h1>Hello {{ user_name }}! Welcome to your Dashboard</h1>
+            {% if license_verified %}
+            <p>Your license has been successfully verified.</p>
+            {% else %}
+            <p>Please verify your license to access caregiver features.</p>
+            {% endif %}
+            <!-- Add caregiver-specific content here -->
+            <div class="row mt-3">
+                <div class="col-md-6">
+                    <h2>Patient Schedules</h2>
+                    <!-- Add patient schedules for caregivers -->
+                </div>
+                <div class="col-md-6">
+                    <h2>Task Management</h2>
+                    <!-- Add task management for caregivers -->
+                </div>
             </div>
         </div>
     </div>
@@ -61,5 +85,17 @@
     <!-- Optional JavaScript -->
     <!-- Bootstrap Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-U1DAWAznBHeqEIlVSCgzq+c9gqGAJn5c/t99JyeKa9xxaYpSvHU5awsuZVVFIhvj" crossorigin="anonymous"></script>
+    <script>
+        // JavaScript to toggle between patient and caregiver dashboards
+        function showPatientDashboard() {
+            document.getElementById("patient-dashboard").style.display = "block";
+            document.getElementById("caregiver-dashboard").style.display = "none";
+        }
+
+        function showCaregiverDashboard() {
+            document.getElementById("patient-dashboard").style.display = "none";
+            document.getElementById("caregiver-dashboard").style.display = "block";
+        }
+    </script>
 </body>
 </html>

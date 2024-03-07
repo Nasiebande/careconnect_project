@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, PasswordField, FileField
+from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Email, EqualTo
 
 class RegistrationForm(FlaskForm):
@@ -13,13 +13,12 @@ class RegistrationForm(FlaskForm):
 class PatientRegistrationForm(FlaskForm):
     patient_name = StringField('Name', validators=[DataRequired()])
     patient_email = StringField('Email', validators=[DataRequired(), Email()])
-    patient_number = StringField('Phone Number', validators=[DataRequired()])
+    phone_number = StringField('Phone Number', validators=[DataRequired()])
     condition = StringField('Condition', validators=[DataRequired()])
     patient_location = StringField('Location', validators=[DataRequired()])
     sex = StringField('Sex', validators=[DataRequired()])
     care_needed = StringField('Care Needed', validators=[DataRequired()])
     preferences = StringField('Preferences')
-    user_type = SelectField('User Type', choices=[('patient', 'Patient')], validators=[DataRequired()])
     submit = SubmitField('Register as Patient')
 
 class CaregiverRegistrationForm(FlaskForm):
@@ -30,7 +29,7 @@ class CaregiverRegistrationForm(FlaskForm):
     qualification = StringField('Qualification', validators=[DataRequired()])
     experience = StringField('Experience', validators=[DataRequired()])
     sex = SelectField('Sex', choices=[('Male', 'Male'), ('Female', 'Female')], validators=[DataRequired()])
-    license = FileField('Upload License', validators=[DataRequired()])
+    license_number = StringField('License Number', validators=[DataRequired()])
     
     # Define choices for the services offered
     SERVICES_CHOICES = [
