@@ -44,7 +44,7 @@ class Caregiver(db.Model):
     qualification = db.Column(db.String(100))
     experience = db.Column(db.String(100))
     sex = db.Column(db.String(10))
-    license = db.Column(db.String(100))
+    license_number = db.Column(db.String(100))
     services_offered = db.Column(db.String(100))
     license_verified = db.Column(db.Boolean, default=False)  # New field for license verification status
     verification_error = db.Column(db.String(255))  # New field for storing verification error message

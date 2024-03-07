@@ -3,6 +3,7 @@ from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 import os
+from flask_migrate import Migrate
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from models import db, User, Patient, Caregiver, Appointment, Review
@@ -29,6 +30,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Use the db instance from models.py
 db.init_app(app)
+
+migrate = Migrate(app, db)
 
 def process_payment(amount):
     # Placeholder logic for payment processing
@@ -162,26 +165,38 @@ def mock_verify_license(license_path):
 @login_required
 def register_caregiver():
     form = CaregiverRegistrationForm()
+    
+    # Debug statement to check if form is submitted
+    print("Form submitted:", form.is_submitted())
+    
     if form.validate_on_submit():
+        # Debug statement to indicate form validation passed
+        print("Form validation passed")
+        
         # Process the data as needed
         # For example, you can directly access the license number from the form
         license_number = form.license_number.data
+        print("License number:", license_number)
 
         # Perform mock verification using the license number
         license_verified = mock_verify_license(license_number)
+        print("License verification result:", license_verified)
+
+        # Convert list of selected services to a comma-separated string
+        services_offered = ', '.join(form.services_offered.data)
 
         # Create a new caregiver instance
         caregiver = Caregiver(
             user_id=current_user.id,
             name=form.caregiver_name.data,
             email=form.caregiver_email.data,
-            phone=form.caregiver_phone.data,
+            phone_number=form.phone_number.data,
             location=form.caregiver_location.data,
             qualification=form.qualification.data,
             experience=form.experience.data,
             sex=form.sex.data,
             license_verified=license_verified,  # Update license_verified field
-            services_offered=form.services_offered.data
+            services_offered=services_offered
         )
 
         # Add the caregiver to the database
@@ -189,7 +204,11 @@ def register_caregiver():
         db.session.commit()
 
         flash('Caregiver registration successful', 'success')
-        return redirect(url_for('home'))
+        return redirect(url_for('dashboard'))
+    
+    # Debug statement to print form errors if validation fails
+    print("Form errors:", form.errors)
+    
     return render_template('register_caregiver.html', form=form)
 
 @app.route('/dashboard')

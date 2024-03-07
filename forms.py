@@ -24,7 +24,7 @@ class PatientRegistrationForm(FlaskForm):
 class CaregiverRegistrationForm(FlaskForm):
     caregiver_name = StringField('Name', validators=[DataRequired()])
     caregiver_email = StringField('Email', validators=[DataRequired(), Email()])
-    caregiver_phone = StringField('Phone Number', validators=[DataRequired()])
+    phone_number = StringField('Phone Number', validators=[DataRequired()])
     caregiver_location = StringField('Location', validators=[DataRequired()])
     qualification = StringField('Qualification', validators=[DataRequired()])
     experience = StringField('Experience', validators=[DataRequired()])
@@ -46,6 +46,4 @@ class CaregiverRegistrationForm(FlaskForm):
         ('Maternal and child care', 'Maternal and child care')
     ]
     services_offered = SelectMultipleField('Services Offered', choices=SERVICES_CHOICES, validators=[DataRequired()])
-    
-    user_type = SelectField('User Type', choices=[('caregiver', 'Caregiver')], validators=[DataRequired()])
     submit = SubmitField('Register as Caregiver')        
