@@ -61,10 +61,10 @@ def signup():
             return redirect(url_for('signup'))  # Redirect back to signup page if user already exists
         
         else:
-            #Hash the password
+            # Hash the password
             hashed_password = generate_password_hash(form.password.data)
 
-            #Create a new user if user does not exist
+            # Create a new user if user does not exist
             new_user = User(name=form.name.data,
                             email=form.email.data,
                             password=hashed_password,
@@ -73,13 +73,21 @@ def signup():
             db.session.commit()
 
             flash("User signed up successfully!")
-            return redirect(url_for('login'))  # Redirect to login page after successful signup
+
+            # Redirect to either patient or caregiver registration based on user type
+            if form.user_type.data == 'caregiver':
+                return redirect(url_for('register_caregiver'))
+            elif form.user_type.data == 'patient':
+                return redirect(url_for('register_patient'))
+            else:
+                flash('Invalid user type selected.', 'error')
+                return redirect(url_for('signup'))  # Redirect back to signup if invalid user type is selected
     else:
         # Debug statement to print form errors
         print(form.errors)
 
-    return render_template('signup.html', form=form)    
-
+    return render_template('signup.html', form=form)
+    
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -92,15 +100,10 @@ def login():
         if user and check_password_hash(user.password, password):  # Check hashed password
             # If the credentials are correct, set the user as logged in
             login_user(user)  # Use Flask-Login's login_user function
+            flash('Logged in successfully!', 'success')
 
-            # Redirect to the appropriate registration page based on user type
-            if user.user_type == 'caregiver':
-                return redirect(url_for('register_caregiver'))
-            elif user.user_type == 'patient':
-                return redirect(url_for('register_patient'))
-            else:
-                flash('Invalid user type.', 'error')
-            return redirect(url_for('home'))  # Redirect to the home page or another route
+            # Redirect the user to the dashboard
+            return redirect(url_for('dashboard'))
         
         else:
             # If the credentials are incorrect, render the login form again with an error message
@@ -118,7 +121,6 @@ def logout():
 
 # Registration route for patients
 @app.route('/register/patient', methods=['GET', 'POST'])
-@login_required
 def register_patient():
     form = PatientRegistrationForm()
     
@@ -162,7 +164,6 @@ def mock_verify_license(license_path):
         return False
 
 @app.route('/register/caregiver', methods=['GET', 'POST'])
-@login_required
 def register_caregiver():
     form = CaregiverRegistrationForm()
     
@@ -174,7 +175,6 @@ def register_caregiver():
         print("Form validation passed")
         
         # Process the data as needed
-        # For example, you can directly access the license number from the form
         license_number = form.license_number.data
         print("License number:", license_number)
 
