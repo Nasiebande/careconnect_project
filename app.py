@@ -102,16 +102,19 @@ def login():
             login_user(user)  # Use Flask-Login's login_user function
             flash('Logged in successfully!', 'success')
 
-            # Redirect the user to the dashboard
-            return redirect(url_for('dashboard'))
+            # Redirect the user to the appropriate dashboard based on user type
+            if user.user_type == 'patient':
+                return redirect(url_for('patient_dashboard'))
+            elif user.user_type == 'caregiver':
+                return redirect(url_for('caregiver_dashboard'))
         
-        else:
-            # If the credentials are incorrect, render the login form again with an error message
-            flash('Invalid email or password.', 'error')
-            return render_template('login.html')
+        # If the credentials are incorrect, render the login form again with an error message
+        flash('Invalid email or password.', 'error')
+        return render_template('login.html')
 
     # If the request method is GET, render the login form
     return render_template('login.html', error=None)
+
 
 @app.route('/logout')
 def logout():
@@ -146,7 +149,7 @@ def register_patient():
         db.session.add(patient)
         db.session.commit()
         flash('Patient registration successful', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('patient_dashboard'))
     
     # Debug statement to print form errors if validation fails
     print("Form errors:", form.errors)
@@ -204,22 +207,30 @@ def register_caregiver():
         db.session.commit()
 
         flash('Caregiver registration successful', 'success')
-        return redirect(url_for('dashboard'))
+        return redirect(url_for('caregiver_dashboard'))
     
     # Debug statement to print form errors if validation fails
     print("Form errors:", form.errors)
     
     return render_template('register_caregiver.html', form=form)
-
-@app.route('/dashboard')
-def dashboard():
-    if current_user.is_authenticated:
-        user_name = current_user.name
+    
+@app.route('/patient_dashboard')
+@login_required
+def patient_dashboard():
+    if current_user.user_type == 'patient':
+        return render_template('patient_dashboard.html', user_name=current_user.name)
     else:
-        user_name = ""
+        flash('You do not have access to the patient dashboard.', 'error')
+        return redirect(url_for('dashboard'))
 
-    license_verified = True  # Set this to True or False based on whether the caregiver's license has been verified
-    return render_template('dashboard.html', user_name=user_name, license_verified=license_verified)
+@app.route('/caregiver_dashboard')
+@login_required
+def caregiver_dashboard():
+    if current_user.user_type == 'caregiver':
+        return render_template('caregiver_dashboard.html', user_name=current_user.name, license_verified=True)  # Set license_verified as needed
+    else:
+        flash('You do not have access to the caregiver dashboard.', 'error')
+        return redirect(url_for('dashboard'))
     
 # Caregiver Search route
 @app.route('/search_caregivers', methods=['GET', 'POST'])
