@@ -124,6 +124,7 @@ def logout():
 
 # Registration route for patients
 @app.route('/register/patient', methods=['GET', 'POST'])
+@login_required
 def register_patient():
     form = PatientRegistrationForm()
     
