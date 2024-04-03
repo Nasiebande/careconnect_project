@@ -1,0 +1,53 @@
+{% extends 'patient_dashboard.html' %}
+{% block content %}
+    <div class="container mt-5">
+        <h1>Medical History</h1>
+        <!-- Display existing medical history data -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Existing Medical History</h5>
+                <ul>
+                    {% for history in medical_history %}
+                        <li>Existing Conditions: {{ history.existing_conditions }}</li>
+                        <li>Allergies: {{ history.allergies }}</li>
+                        <li>Medications: {{ history.medications }}</li>
+                        <li>Surgeries: {{ history.surgeries }}</li>
+                        <li>Ongoing Treatments: {{ history.ongoing_treatments }}</li>
+                        <hr>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Form for adding new medical history data -->
+        <div class="card mt-3">
+            <div class="card-body">
+                <h5 class="card-title">Add New Medical History</h5>
+                <form method="POST" action="{{ url_for('medical_history') }}">
+                    {{ form.hidden_tag() }}  <!-- CSRF token -->
+                    <div class="mb-3">
+                        <label for="existing_conditions" class="form-label">Existing Conditions</label>
+                        <input type="text" class="form-control" id="existing_conditions" name="existing_conditions">
+                    </div>
+                    <div class="mb-3">
+                        <label for="allergies" class="form-label">Allergies</label>
+                        <input type="text" class="form-control" id="allergies" name="allergies">
+                    </div>
+                    <div class="mb-3">
+                        <label for="medications" class="form-label">Medications</label>
+                        <input type="text" class="form-control" id="medications" name="medications">
+                    </div>
+                    <div class="mb-3">
+                        <label for="surgeries" class="form-label">Surgeries</label>
+                        <input type="text" class="form-control" id="surgeries" name="surgeries">
+                    </div>
+                    <div class="mb-3">
+                        <label for="ongoing_treatments" class="form-label">Ongoing Treatments</label>
+                        <input type="text" class="form-control" id="ongoing_treatments" name="ongoing_treatments">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endblock %}
