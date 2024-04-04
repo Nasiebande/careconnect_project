@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from models import db, User, Patient, Caregiver, Appointment, Review
-from forms import RegistrationForm, PatientRegistrationForm, CaregiverRegistrationForm
+from forms import RegistrationForm, PatientRegistrationForm, CaregiverRegistrationForm, ProfileForm
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -50,41 +50,38 @@ def about():
 def signup():
     form = RegistrationForm()
     
-    # Debug statement to check if form is submitted
-    print("Form submitted:", form.is_submitted())
-    
     if form.validate_on_submit():
-        # Form submission logic
-        user = User.query.filter_by(email=form.email.data).first()  # Check if user already exists
+        # Check if user already exists
+        user = User.query.filter_by(email=form.email.data).first()
         if user:
             flash('Email address is already registered. Please use a different one.', 'error')
-            return redirect(url_for('signup'))  # Redirect back to signup page if user already exists
-        
+            return redirect(url_for('signup'))
+
+        # Hash the password
+        hashed_password = generate_password_hash(form.password.data)
+
+        # Create a new user if user does not exist
+        new_user = User(name=form.name.data,
+                        email=form.email.data,
+                        password=hashed_password,
+                        user_type=form.user_type.data,
+                        gender=form.gender.data,
+                        date_of_birth=form.date_of_birth.data,
+                        location=form.location.data,
+                        phone_number=form.phone_number.data)
+        db.session.add(new_user)
+        db.session.commit()
+
+        flash("User signed up successfully!")
+
+        # Redirect to either patient or caregiver registration based on user type
+        if form.user_type.data == 'caregiver':
+            return redirect(url_for('register_caregiver'))
+        elif form.user_type.data == 'patient':
+            return redirect(url_for('register_patient'))
         else:
-            # Hash the password
-            hashed_password = generate_password_hash(form.password.data)
-
-            # Create a new user if user does not exist
-            new_user = User(name=form.name.data,
-                            email=form.email.data,
-                            password=hashed_password,
-                            user_type=form.user_type.data)
-            db.session.add(new_user)
-            db.session.commit()
-
-            flash("User signed up successfully!")
-
-            # Redirect to either patient or caregiver registration based on user type
-            if form.user_type.data == 'caregiver':
-                return redirect(url_for('register_caregiver'))
-            elif form.user_type.data == 'patient':
-                return redirect(url_for('register_patient'))
-            else:
-                flash('Invalid user type selected.', 'error')
-                return redirect(url_for('signup'))  # Redirect back to signup if invalid user type is selected
-    else:
-        # Debug statement to print form errors
-        print(form.errors)
+            flash('Invalid user type selected.', 'error')
+            return redirect(url_for('signup'))
 
     return render_template('signup.html', form=form)
     
@@ -143,7 +140,7 @@ def register_patient():
             phone_number=form.phone_number.data,  
             condition=form.condition.data,
             location=form.patient_location.data,
-            sex=form.sex.data,
+            gender=form.gender.data,
             care_needed=form.care_needed.data,
             preferences=form.preferences.data
         )
@@ -198,7 +195,7 @@ def register_caregiver():
             location=form.caregiver_location.data,
             qualification=form.qualification.data,
             experience=form.experience.data,
-            sex=form.sex.data,
+            gender=form.gender.data,
             license_verified=license_verified,  # Update license_verified field
             services_offered=services_offered
         )
@@ -232,6 +229,34 @@ def caregiver_dashboard():
     else:
         flash('You do not have access to the caregiver dashboard.', 'error')
         return redirect(url_for('dashboard'))
+    
+@app.route('/profile', methods=['GET', 'POST'])
+@login_required
+def profile():
+    form = ProfileForm()
+
+    # Check if the user has already filled their profile details
+    if not current_user.is_profile_complete():
+        # Redirect the user to the profile update page
+        return redirect(url_for('update_profile'))
+
+    if form.validate_on_submit():
+        current_user.name = form.name.data
+        current_user.email = form.email.data
+        current_user.phone_number = form.phone_number.data
+        # Update other profile fields as needed
+
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('profile'))
+
+    # Prepopulate the form fields with the user's current information
+    form.name.data = current_user.name
+    form.email.data = current_user.email
+    form.phone_number.data = current_user.phone_number
+    # Prepopulate other form fields with the user's current information
+
+    return render_template('profile.html', form=form, user_name=current_user.name)
     
 # Caregiver Search route
 @app.route('/search_caregivers', methods=['GET', 'POST'])

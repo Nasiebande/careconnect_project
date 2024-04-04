@@ -19,19 +19,32 @@
         {{ form.csrf_token }}
 
         <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br><br>
+        <input type="text" id="name" name="name" value="{{ form.name.data }}" required><br><br>
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br><br>
+        <input type="email" id="email" name="email" value="{{ form.email.data }}" required><br><br>
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required><br><br>
         <label for="confirm_password">Confirm Password:</label>
         <input type="password" id="confirm_password" name="confirm_password" required><br><br>
         <label for="user_type">User Type:</label>
         <select id="user_type" name="user_type" required>
-            <option value="caregiver">Caregiver</option>
-            <option value="patient">Patient</option>
+            <option value="caregiver" {% if form.user_type.data == 'caregiver' %}selected{% endif %}>Caregiver</option>
+            <option value="patient" {% if form.user_type.data == 'patient' %}selected{% endif %}>Patient</option>
         </select><br><br>
+        <label for="gender">Gender:</label>
+        <select id="gender" name="gender" required>
+            <option value="male" {% if form.gender.data == 'male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if form.gender.data == 'female' %}selected{% endif %}>Female</option>
+            <option value="other" {% if form.gender.data == 'other' %}selected{% endif %}>Other</option>
+        </select><br><br>
+        <label for="date_of_birth">Date of Birth:</label>
+        <input type="date" id="date_of_birth" name="date_of_birth" value="{{ form.date_of_birth.data }}" required><br><br>
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" value="{{ form.location.data }}" required><br><br>
+        <label for="phone_number">Phone Number:</label>
+        <input type="tel" id="phone_number" name="phone_number" value="{{ form.phone_number.data }}" required><br><br>
         <input type="submit" value="Sign Up">
     </form>
 </body>
 </html>
+

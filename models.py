@@ -1,6 +1,9 @@
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 from flask_login import UserMixin
+from werkzeug.security import generate_password_hash
+from datetime import datetime
+
 
 db = SQLAlchemy()
 
@@ -10,11 +13,46 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(100), unique=True)
     password = db.Column(db.String(100))
     user_type = db.Column(db.String(20))  # 'patient' or 'caregiver'
+    phone_number = db.Column(db.String(20))
+    date_of_birth = db.Column(db.Date)
+    gender = db.Column(db.String(10))
+    location = db.Column(db.String(255))
     
     # Define the relationship with Patient and Caregiver models
-    patient = db.relationship('Patient', backref='user', uselist=False)
-    caregiver = db.relationship('Caregiver', backref='user', uselist=False)
+    def create_patient_profile(self):
+        if not self.patient:
+            self.patient = Patient()
+            db.session.add(self.patient)
+            db.session.commit()
+    
+    def create_caregiver_profile(self):
+        if not self.caregiver:
+            self.caregiver = Caregiver()
+            db.session.add(self.caregiver)
+            db.session.commit()
 
+    def set_password(self, password):
+        self.password = generate_password_hash(password)
+
+    def update_profile(self, name, email, date_of_birth, gender, location, phone_number):
+        from dateutil.relativedelta import relativedelta    
+
+        self.name = name
+        self.email = email
+        self.phone_number = phone_number
+        self.date_of_birth = date_of_birth
+        self.gender = gender
+        self.location = location
+        self.age = relativedelta(datetime.today(), self.date_of_birth).years if self.date_of_birth else None         
+
+    def is_profile_complete(self):
+        # Logic to check if the user's profile is complete
+        # For example, you could check if all required fields are filled
+        if self.name and self.email and self.phone_number:
+            return True
+        else:
+            return False
+    
     def __repr__(self):
         return f'<User {self.name}>'
 
@@ -26,7 +64,7 @@ class Patient(db.Model):
     phone_number = db.Column(db.String(20), nullable=False)
     condition = db.Column(db.String(100), nullable=False)
     location = db.Column(db.String(100), nullable=False)
-    sex = db.Column(db.String(10), nullable=False)  # Add sex field
+    gender = db.Column(db.String(10), nullable=False)  
     care_needed = db.Column(db.String(100), nullable=False)  # Changing care_needed to a single field
     preferences = db.Column(db.String(100))  # Add preferences field
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
@@ -43,7 +81,7 @@ class Caregiver(db.Model):
     location = db.Column(db.String(100))
     qualification = db.Column(db.String(100))
     experience = db.Column(db.String(100))
-    sex = db.Column(db.String(10))
+    gender = db.Column(db.String(10))
     license_number = db.Column(db.String(100))
     services_offered = db.Column(db.String(100))
     license_verified = db.Column(db.Boolean, default=False)  # New field for license verification status
