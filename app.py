@@ -7,7 +7,7 @@ from flask_migrate import Migrate
 from dotenv import load_dotenv
 from werkzeug.utils import secure_filename
 from models import db, User, Patient, Caregiver, Appointment, Review
-from forms import RegistrationForm, PatientRegistrationForm, CaregiverRegistrationForm, ProfileForm
+from forms import RegistrationForm, PatientRegistrationForm, CaregiverRegistrationForm, ProfileForm, AppointmentForm
 
 load_dotenv()  # Load environment variables from .env file
 
@@ -257,6 +257,85 @@ def profile():
     # Prepopulate other form fields with the user's current information
 
     return render_template('profile.html', form=form, user_name=current_user.name)
+
+@app.route('/appointments')
+@login_required
+def appointments():
+    form = AppointmentForm() 
+
+    if current_user.user_type == 'patient':
+        # For patients, filter appointments based on patient ID
+        upcoming_appointments = Appointment.query.filter_by(patient_id=current_user.id).filter(Appointment.date_time > datetime.now()).all()
+    elif current_user.user_type == 'caregiver':
+        # For caregivers, filter appointments based on caregiver ID
+        upcoming_appointments = Appointment.query.filter_by(caregiver_id=current_user.id).filter(Appointment.date_time > datetime.now()).all()
+    else:
+        return redirect(url_for('index'))  # Redirect to home if user type is not patient or caregiver
+    
+    return render_template('appointments.html', upcoming_appointments=upcoming_appointments, form=form)  # Pass the form variable to the template
+
+@app.route('/book_appointment', methods=['GET', 'POST'])
+@login_required
+def book_appointment():
+    form = AppointmentForm()
+    if form.validate_on_submit():
+        appointment = Appointment(
+            patient_id=current_user.id if current_user.user_type == 'patient' else form.patient_id.data,
+            caregiver_id=form.caregiver_id.data,
+            date_time=form.date_time.data,
+            duration=form.duration.data,
+            location=form.location.data,
+            notes=form.notes.data
+        )
+        db.session.add(appointment)
+        db.session.commit()
+        flash('Appointment booked successfully!', 'success')
+        return redirect(url_for('appointments'))
+    
+    return render_template('book_appointment.html', form=form)
+
+@app.route('/view_appointment/<int:appointment_id>')
+@login_required
+def view_appointment(appointment_id):
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        flash('Appointment not found!', 'error')
+        return redirect(url_for('appointments'))
+
+    return render_template('view_appointment.html', appointment=appointment)
+
+@app.route('/cancel_appointment/<int:appointment_id>', methods=['POST'])
+@login_required
+def cancel_specific_appointment(appointment_id):
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        flash('Appointment not found!', 'error')
+        return redirect(url_for('appointments'))
+
+    db.session.delete(appointment)
+    db.session.commit()
+    flash('Appointment canceled successfully!', 'success')
+    return redirect(url_for('appointments'))
+
+@app.route('/reschedule_appointment/<int:appointment_id>', methods=['GET', 'POST'])
+@login_required
+def reschedule_appointment(appointment_id):
+    appointment = Appointment.query.get(appointment_id)
+    if not appointment:
+        flash('Appointment not found!', 'error')
+        return redirect(url_for('appointments'))
+
+    form = AppointmentForm(obj=appointment)
+    if form.validate_on_submit():
+        appointment.date_time = form.date_time.data
+        appointment.duration = form.duration.data
+        appointment.location = form.location.data
+        appointment.notes = form.notes.data
+        db.session.commit()
+        flash('Appointment rescheduled successfully!', 'success')
+        return redirect(url_for('appointments'))
+    
+    return render_template('reschedule_appointment.html', form=form, appointment=appointment)
     
 # Caregiver Search route
 @app.route('/search_caregivers', methods=['GET', 'POST'])

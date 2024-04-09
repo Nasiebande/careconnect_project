@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, PasswordField, IntegerField, DateField
+from wtforms import StringField, SelectField, SelectMultipleField, SubmitField, PasswordField, IntegerField, DateField, DateTimeField, TextAreaField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 from models import User
 
@@ -66,5 +66,12 @@ class ProfileForm(FlaskForm):
     age = IntegerField('Age', validators=[DataRequired()])
     sex = SelectField('Sex', choices=[('male', 'Male'), ('female', 'Female')], validators=[DataRequired()])
     location = StringField('Location', validators=[DataRequired()])
-    submit = SubmitField('Update Profile')  
+    submit = SubmitField('Update Profile')
+
+class AppointmentForm(FlaskForm):
+    date_time = DateTimeField('Date and Time', validators=[DataRequired()], format='%Y-%m-%d %H:%M:%S')
+    duration = IntegerField('Duration (minutes)', validators=[DataRequired()])
+    notes = TextAreaField('Additional Notes')
+    location = StringField('Location', validators=[DataRequired()])
+    submit = SubmitField('Book Appointment')      
         

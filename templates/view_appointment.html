@@ -1,0 +1,17 @@
+{% extends 'appointments.html' %}
+
+{% block title %}
+    View Appointment - CareConnect
+{% endblock %}
+
+{% block content %}
+    <h1>View Appointment</h1>
+    <p>Date and Time: {{ appointment.date_time }}</p>
+    <p>Duration: {{ appointment.duration }} minutes</p>
+    <p>Location: {{ appointment.location }}</p>
+    <!-- Additional appointment details can be displayed here -->
+    <h2>Additional Actions</h2>
+    <ul>
+        <li><a href="{{ url_for('appointments') }}">Back to Appointments</a></li>
+    </ul>
+{% endblock %}

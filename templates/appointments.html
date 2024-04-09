@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    {% if current_user.user_type == 'patient' %}
+        Patient Dashboard - CareConnect
+    {% elif current_user.user_type == 'caregiver' %}
+        Caregiver Dashboard - CareConnect
+    {% else %}
+        CareConnect
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <h1>Appointments</h1>
+
+    <!-- Display upcoming appointments -->
+    <h2>Upcoming Appointments</h2>
+    <ul>
+        {% for appointment in upcoming_appointments %}
+            <li>{{ appointment.date_time.strftime('%Y-%m-%d %H:%M:%S') }} - Duration: {{ appointment.duration }} minutes</li>
+            <ul>
+                <li><a href="{{ url_for('view_appointment', appointment_id=appointment.id) }}">View</a></li>
+                <li><a href="{{ url_for('reschedule_appointment', appointment_id=appointment.id) }}">Reschedule</a></li>
+                <li><a href="{{ url_for('cancel_appointment', appointment_id=appointment.id) }}">Cancel</a></li>
+            </ul>
+        {% endfor %}
+    </ul>
+
+    <!-- Add a form for booking new appointments -->
+    <h2>Book New Appointment</h2>
+    <form action="{{ url_for('book_appointment') }}" method="POST">
+        {{ form.csrf_token }}
+        <label for="date_time">Date and Time:</label>
+        <input type="datetime-local" id="date_time" name="date_time" required><br><br>
+        <label for="duration">Duration (minutes):</label>
+        <input type="number" id="duration" name="duration" required><br><br>
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" required><br><br>
+        <!-- Additional fields can be added as needed -->
+        <button type="submit">Book Appointment</button>
+    </form>
+
+    <h2>Additional Actions</h2>
+<ul>
+    <li><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></li>
+</ul>
+</body>
+</html>
+
+{% endblock %}

@@ -100,8 +100,7 @@ class Appointment(db.Model):
     caregiver = db.relationship('Caregiver', backref='appointments_as_caregiver', foreign_keys=[caregiver_id])
     date_time = db.Column(db.DateTime, nullable=False)
     duration = db.Column(db.Integer, nullable=False)
-    payment_status = db.Column(db.String(20), nullable=False)
-    care_requirements = db.Column(db.Text, nullable=True)
+    notes = db.Column(db.Text, nullable=True)
     location = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
