@@ -1,4 +1,4 @@
-{% extends 'patient_dashboard.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
 <div class="container">
@@ -6,39 +6,31 @@
     <form method="POST" action="{{ url_for('profile') }}">
         {{ form.hidden_tag() }}
         <div class="form-group">
-            {{ form.patient_name.label(class="form-control-label") }}
-            {{ form.patient_name(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.patient_email.label(class="form-control-label") }}
-            {{ form.patient_email(class="form-control") }}
-        </div>
-        <div class="form-group">
+            {{ form.name.label(class="form-control-label") }}
+            {{ form.name(class="form-control", placeholder="Name") }}
+          </div>
+          <div class="form-group">
+            {{ form.email.label(class="form-control-label") }}
+            {{ form.email(class="form-control", placeholder="Email") }}
+          </div>
+          <div class="form-group">
             {{ form.phone_number.label(class="form-control-label") }}
-            {{ form.phone_number(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.condition.label(class="form-control-label") }}
-            {{ form.condition(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.patient_location.label(class="form-control-label") }}
-            {{ form.patient_location(class="form-control") }}
-        </div>
-        <div class="form-group">
+            {{ form.phone_number(class="form-control", placeholder="Phone Number") }}
+          </div>
+          <div class="form-group">
+            {{ form.date_of_birth.label(class="form-control-label") }}
+            {{ form.date_of_birth(class="form-control", placeholder="Date of Birth") }}
+          </div>
+          <div class="form-group">
             {{ form.gender.label(class="form-control-label") }}
             {{ form.gender(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.care_needed.label(class="form-control-label") }}
-            {{ form.care_needed(class="form-control") }}
-        </div>
-        <div class="form-group">
-            {{ form.preferences.label(class="form-control-label") }}
-            {{ form.preferences(class="form-control") }}
-        </div>
-        <!-- Add other form fields as needed -->
-        <button type="submit" class="btn btn-primary">Update Profile</button>
-    </form>
-</div>
-{% endblock %}
+          </div>
+          <div class="form-group">
+            {{ form.location.label(class="form-control-label") }}
+            {{ form.location(class="form-control", placeholder="Location") }}
+          </div>
+          <div class="form-group">
+            {{ form.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+      {% endblock %}

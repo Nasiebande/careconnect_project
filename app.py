@@ -238,13 +238,16 @@ def profile():
     # Check if the user has already filled their profile details
     if not current_user.is_profile_complete():
         # Redirect the user to the profile update page
+        flash('Please complete your profile before accessing this page.', 'warning')
         return redirect(url_for('update_profile'))
 
     if form.validate_on_submit():
         current_user.name = form.name.data
         current_user.email = form.email.data
         current_user.phone_number = form.phone_number.data
-        # Update other profile fields as needed
+        current_user.date_of_birth = form.date_of_birth.data
+        current_user.gender = form.gender.data
+        current_user.location = form.location.data
 
         db.session.commit()
         flash('Profile updated successfully!', 'success')
@@ -254,7 +257,13 @@ def profile():
     form.name.data = current_user.name
     form.email.data = current_user.email
     form.phone_number.data = current_user.phone_number
-    # Prepopulate other form fields with the user's current information
+    form.date_of_birth.data = current_user.date_of_birth
+    form.gender.data = current_user.gender
+    form.location.data = current_user.location
+
+    # Debugging statements
+    print("Rendering profile page with form data:", form.data)
+    print("Current user name:", current_user.name)
 
     return render_template('profile.html', form=form, user_name=current_user.name)
 

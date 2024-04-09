@@ -1,42 +1,13 @@
-{% extends 'patient_dashboard.html' %}
+{% extends 'base.html' %}
 
 {% block content %}
     <div class="container mt-5">
         <h1>Profile</h1>
-        <form method="POST">
-            {{ form.hidden_tag() }}  <!-- Include CSRF token -->
-
-            <div class="mb-3">
-                {{ form.name.label(class="form-label") }}
-                {{ form.name(class="form-control") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.phone_number.label(class="form-label") }}
-                {{ form.phone_number(class="form-control") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.age.label(class="form-label") }}
-                {{ form.age(class="form-control") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.gender.label(class="form-label") }}
-                {{ form.gender(class="form-control") }}
-            </div>
-
-            <div class="mb-3">
-                {{ form.location.label(class="form-label") }}
-                {{ form.location(class="form-control") }}
-            </div>
-
-            {{ form.submit(class="btn btn-primary") }}
-        </form>
+        <p>Name: {{ current_user.name }}</p>
+        <p>Email: {{ current_user.email }}</p>
+        <p>Phone Number: {{ current_user.phone_number }}</p>
+        <p>Date of Birth: {{ current_user.date_of_birth }}</p>
+        <p>Gender: {{ current_user.gender }}</p>
+        <p>Location: {{ current_user.location }}</p>
     </div>
 {% endblock %}
