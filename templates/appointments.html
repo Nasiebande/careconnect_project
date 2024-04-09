@@ -28,8 +28,8 @@
     </ul>
 
     <!-- Add a form for booking new appointments -->
-    <h2>Book New Appointment</h2>
-    <form action="{{ url_for('book_appointment') }}" method="POST">
+    <h2>Schedule New Appointment</h2>
+    <form action="{{ url_for('schedule_appointment') }}" method="POST">
         {{ form.csrf_token }}
         <label for="date_time">Date and Time:</label>
         <input type="datetime-local" id="date_time" name="date_time" required><br><br>
@@ -42,9 +42,6 @@
     </form>
 
     <h2>Additional Actions</h2>
-<ul>
-    <li><a href="{{ url_for('dashboard') }}">Back to Dashboard</a></li>
-</ul>
 </body>
 </html>
 

@@ -367,31 +367,52 @@ def select_caregiver():
             return "Caregiver not found"
         
 @app.route('/schedule_appointment', methods=['GET', 'POST'])
+@login_required
 def schedule_appointment():
     if request.method == 'POST':
         # Get form data
-        patient_id = request.form['patient_id']
-        caregiver_id = request.form['caregiver_id']
-        date_time_str = request.form['date_time']
-        duration = float(request.form['duration'])  # Convert to float
+        patient_id = request.form.get('patient_id')
+        caregiver_id = request.form.get('caregiver_id')
+        date_time_str = request.form.get('date_time')
+        duration = float(request.form.get('duration'))  # Convert to float
+        notes = request.form.get('notes')
+        location = request.form.get('location')
+
+        # Debug statements to print form data
+        print("Patient ID:", patient_id)
+        print("Caregiver ID:", caregiver_id)
+        print("Date and Time:", date_time_str)
+        print("Duration:", duration)
+        print("Notes:", notes)
+        print("Location:", location)
 
         # Find the caregiver and patient by ID
-        caregiver = Caregiver.query.get(caregiver_id)
-        patient = Patient.query.get(patient_id)
+        caregiver = Caregiver.query.get_or_404(caregiver_id)
+        patient = Patient.query.get_or_404(patient_id)
+
+        # Debug statements to print found caregiver and patient
+        print("Found caregiver:", caregiver)
+        print("Found patient:", patient)
 
         # Create a new appointment
         appointment = Appointment(
             patient_id=patient.id,
             caregiver_id=caregiver.id,
             date_time=datetime.strptime(date_time_str, "%Y-%m-%d %H:%M"),
-            duration=duration
+            duration=duration,
+            notes=notes,
+            location=location
         )
 
         # Add appointment to the database
         db.session.add(appointment)
         db.session.commit()
 
+        # Debug statement to indicate successful appointment creation
+        print("Appointment scheduled successfully!")
+
         # Redirect to home page or display success message
+        flash('Appointment scheduled successfully!', 'success')
         return redirect(url_for('home'))
 
     # Render the appointment scheduling form
