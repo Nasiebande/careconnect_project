@@ -47,7 +47,6 @@ class User(db.Model, UserMixin):
 
     def is_profile_complete(self):
         # Logic to check if the user's profile is complete
-        # For example, you could check if all required fields are filled
         if self.name and self.email and self.phone_number:
             return True
         else:
@@ -66,7 +65,7 @@ class Patient(db.Model):
     location = db.Column(db.String(100), nullable=False)
     gender = db.Column(db.String(10), nullable=False)  
     care_needed = db.Column(db.String(100), nullable=False)  # Changing care_needed to a single field
-    preferences = db.Column(db.String(100))  # Add preferences field
+    preferences = db.Column(db.String(100))  
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
 
     def __repr__(self):
